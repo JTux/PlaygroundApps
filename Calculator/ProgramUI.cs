@@ -11,78 +11,71 @@ namespace Calculator
 
         public void Run()
         {
-            Queue<string> equation = new Queue<string>();
-            Queue<char> operators = new Queue<char>();
+            List<string> constants = new List<string>();
+            List<char> operators = new List<char>();
             string equationPart = "";
             while (true)
             {
-                var key = Console.ReadKey().KeyChar;
+                void PrintParts()
+                {
+                    Console.Clear();
+                    PrintEquation(constants, operators);
+                }
+
+                Console.CursorVisible = false;
+                var key = Console.ReadKey(true).KeyChar;
+
+                if (key == '\r')
+                    key = '=';
 
                 if (IsOperator(key))
                 {
                     if (equationPart == "")
                         continue;
 
-                    operators.Enqueue(key);
-                    equation.Enqueue(equationPart);
+                    operators.Add(key);
+                    constants.Add(equationPart);
                     equationPart = "";
 
-                    PrintEquation(equation.ToArray(), operators.ToArray());
+                    PrintEquation(constants, operators);
 
-                    if (equation.Count != 0 && (key == '=' || key == '\r'))
+                    if (constants.Count != 0 && key == '=')
                     {
                         Console.Clear();
-                        Calculate(equation, operators);
-                        equation = new Queue<string>();
-                        operators = new Queue<char>();
+                        Calculate(constants, operators);
+                        constants = new List<string>();
+                        operators = new List<char>();
                     }
                 }
-                else if (IsNumber(key))
-                    equationPart += key;
+                else
+                {
+                    if (IsNumber(key))
+                        equationPart += key;
+                    else if (key == '\b' && equationPart.Length > 0)
+                    {
+                        equationPart = equationPart.Substring(0, equationPart.Length - 1);
+                    }
+
+                    PrintParts();
+                    Console.Write(equationPart);
+                }
             }
         }
 
-        private void PrintEquation(string[] equation, char[] operators)
+        private void PrintEquation(List<string> equation, List<char> operators)
         {
             Console.Clear();
-            for (int i = 0; i < equation.Length; i++)
+            for (int i = 0; i < equation.Count; i++)
             {
                 Console.Write($"{equation[i]} {operators[i]} ");
             }
         }
 
-        private decimal Calculate(Queue<string> equation, Queue<char> operators)
+        private decimal Calculate(List<string> constantList, List<char> operatorList)
         {
-            var equationList = new List<string>(equation);
-            var operatorList = new List<char>(operators);
-
-            var total = decimal.Parse(equation.Dequeue());
-            int iterations = equation.Count;
-            Console.Write(total + " ");
-
-            for (int i = 0; i < iterations; i++)
-            {
-                var number = decimal.Parse(equation.Dequeue());
-                var op = operators.Dequeue();
-                switch (op)
-                {
-                    case '+':
-                        total += number;
-                        break;
-                    case '-':
-                        total -= number;
-                        break;
-                    case '/':
-                        total /= number;
-                        break;
-                    case '*':
-                        total *= number;
-                        break;
-                }
-                Console.Write($"{op} {number} ");
-            }
-            Console.WriteLine($"= {RunCalculation(equationList, operatorList)}");
-            return total;
+            PrintEquation(constantList, operatorList);
+            Console.WriteLine($"{RunCalculation(constantList, operatorList)}");
+            return 0;
         }
 
         private decimal RunCalculation(List<string> constants, List<char> ops)
@@ -183,7 +176,6 @@ namespace Calculator
                 case '/':
                 case '*':
                 case '=':
-                case '\r':
                     return true;
                 default:
                     return false;
