@@ -7,6 +7,7 @@ namespace Calculator
     {
         public ProgramUI()
         {
+            Console.CursorVisible = false;
         }
 
         public void Run()
@@ -16,13 +17,6 @@ namespace Calculator
             string equationPart = "";
             while (true)
             {
-                void PrintParts()
-                {
-                    Console.Clear();
-                    PrintEquation(constants, operators);
-                }
-
-                Console.CursorVisible = false;
                 var key = Console.ReadKey(true).KeyChar;
 
                 if (key == '\r')
@@ -41,8 +35,8 @@ namespace Calculator
 
                     if (constants.Count != 0 && key == '=')
                     {
-                        Console.Clear();
-                        Calculate(constants, operators);
+                        PrintEquation(constants, operators);
+                        Console.WriteLine($"{RunCalculation(constants, operators)}");
                         constants = new List<string>();
                         operators = new List<char>();
                     }
@@ -52,11 +46,9 @@ namespace Calculator
                     if (IsNumber(key))
                         equationPart += key;
                     else if (key == '\b' && equationPart.Length > 0)
-                    {
                         equationPart = equationPart.Substring(0, equationPart.Length - 1);
-                    }
-
-                    PrintParts();
+                    
+                    PrintEquation(constants, operators);
                     Console.Write(equationPart);
                 }
             }
@@ -66,35 +58,26 @@ namespace Calculator
         {
             Console.Clear();
             for (int i = 0; i < equation.Count; i++)
-            {
                 Console.Write($"{equation[i]} {operators[i]} ");
-            }
         }
 
-        private decimal Calculate(List<string> constantList, List<char> operatorList)
-        {
-            PrintEquation(constantList, operatorList);
-            Console.WriteLine($"{RunCalculation(constantList, operatorList)}");
-            return 0;
-        }
-
-        private decimal RunCalculation(List<string> constants, List<char> ops)
+        private decimal RunCalculation(List<string> constants, List<char> operators)
         {
             var updatedConstants = new List<string>();
 
             void Reset(char op)
             {
-                ops.RemoveAll(o => o == op);
+                operators.RemoveAll(o => o == op);
                 constants = updatedConstants;
                 updatedConstants = new List<string>();
             }
 
-            foreach (var op in new char[] { '*', '/', '+', '-' })
+            foreach (var operatorType in new char[] { '*', '/', '+', '-' })
             {
-                if (ops.Contains(op))
+                if (operators.Contains(operatorType))
                 {
-                    updatedConstants = Operate(constants, ops, op);
-                    Reset(op);
+                    updatedConstants = Operate(constants, operators, operatorType);
+                    Reset(operatorType);
                 }
             }
             return decimal.Parse(constants[0]);
@@ -152,7 +135,6 @@ namespace Calculator
                     return false;
             }
         }
-
         private bool IsOperator(char key)
         {
             switch (key)
