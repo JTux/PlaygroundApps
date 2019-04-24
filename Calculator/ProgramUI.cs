@@ -89,34 +89,22 @@ namespace Calculator
                 updatedConstants = new List<string>();
             }
 
-            if (ops.Contains('*'))
+            foreach (var op in new char[] { '*', '/', '+', '-' })
             {
-                updatedConstants = Operate(constants, ops, '*');
-                Reset('*');
-            }
-            if (ops.Contains('/'))
-            {
-                updatedConstants = Operate(constants, ops, '/');
-                Reset('/');
-            }
-            if (ops.Contains('+'))
-            {
-                updatedConstants = Operate(constants, ops, '+');
-                Reset('+');
-            }
-            if (ops.Contains('-'))
-            {
-                updatedConstants = Operate(constants, ops, '-');
-                Reset('-');
+                if (ops.Contains(op))
+                {
+                    updatedConstants = Operate(constants, ops, op);
+                    Reset(op);
+                }
             }
             return decimal.Parse(constants[0]);
         }
 
         private List<string> Operate(List<string> constants, List<char> operators, char operationType)
         {
-            List<string> updatedConstants = new List<string>();
-            for (int i = 0; i < operators.Count; i++)
+            while (operators.Contains(operationType))
             {
+                int i = operators.FindIndex(o => o == operationType);
                 if (operators[i] == operationType)
                 {
                     var calc = 0m;
@@ -136,15 +124,13 @@ namespace Calculator
                             break;
                     }
 
-                    updatedConstants.Add(calc.ToString());
-                    i++;
-                }
-                else
-                {
-                    updatedConstants.Add(constants[i]);
+                    constants[i] = calc.ToString();
+                    constants.RemoveAt(i + 1);
+                    operators.RemoveAt(i);
                 }
             }
-            return updatedConstants;
+
+            return constants;
         }
 
         private bool IsNumber(char key)
