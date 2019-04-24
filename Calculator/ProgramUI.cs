@@ -81,94 +81,77 @@ namespace Calculator
                 }
                 Console.Write($"{op} {number} ");
             }
-            Console.WriteLine($"= {PEMDAS(equationList, operatorList)}");
+            Console.WriteLine($"= {RunCalculation(equationList, operatorList)}");
             return total;
         }
 
-        private decimal PEMDAS(List<string> pemdas, List<char> ops)
+        private decimal RunCalculation(List<string> constants, List<char> ops)
         {
-            var newList = new List<string>();
+            var updatedConstants = new List<string>();
 
-            int length = ops.Count;
-            decimal total = 0m;
-            decimal real = 0m;
-            //Multiply
-            for (int i = 0; i < length; i++)
+            void Reset(char op)
             {
-                if (ops[i] == '*')
+                ops.RemoveAll(o => o == op);
+                constants = updatedConstants;
+                updatedConstants = new List<string>();
+            }
+
+            if (ops.Contains('*'))
+            {
+                updatedConstants = Operate(constants, ops, '*');
+                Reset('*');
+            }
+            if (ops.Contains('/'))
+            {
+                updatedConstants = Operate(constants, ops, '/');
+                Reset('/');
+            }
+            if (ops.Contains('+'))
+            {
+                updatedConstants = Operate(constants, ops, '+');
+                Reset('+');
+            }
+            if (ops.Contains('-'))
+            {
+                updatedConstants = Operate(constants, ops, '-');
+                Reset('-');
+            }
+            return decimal.Parse(constants[0]);
+        }
+
+        private List<string> Operate(List<string> constants, List<char> operators, char operationType)
+        {
+            List<string> updatedConstants = new List<string>();
+            for (int i = 0; i < operators.Count; i++)
+            {
+                if (operators[i] == operationType)
                 {
-                    var prod = decimal.Parse(pemdas[i]) * decimal.Parse(pemdas[i + 1]);
-                    total += prod;
-                    newList.Add(prod.ToString());
+                    var calc = 0m;
+                    switch (operationType)
+                    {
+                        case '*':
+                            calc = decimal.Parse(constants[i]) * decimal.Parse(constants[i + 1]);
+                            break;
+                        case '/':
+                            calc = decimal.Parse(constants[i]) / decimal.Parse(constants[i + 1]);
+                            break;
+                        case '+':
+                            calc = decimal.Parse(constants[i]) + decimal.Parse(constants[i + 1]);
+                            break;
+                        case '-':
+                            calc = decimal.Parse(constants[i]) - decimal.Parse(constants[i + 1]);
+                            break;
+                    }
+
+                    updatedConstants.Add(calc.ToString());
                     i++;
                 }
                 else
                 {
-                    newList.Add(pemdas[i]);
+                    updatedConstants.Add(constants[i]);
                 }
             }
-            ops.RemoveAll(o => o == '*');
-            real = total;
-            total = 0;
-            pemdas = newList;
-            newList = new List<string>();
-            //Divide
-            for (int i = 0; i < ops.Count; i++)
-            {
-                if (ops[i] == '/')
-                {
-                    var prod = decimal.Parse(pemdas[i]) / decimal.Parse(pemdas[i + 1]);
-                    total += prod;
-                    newList.Add(prod.ToString());
-                    i++;
-                }
-                else
-                {
-                    newList.Add(pemdas[i]);
-                }
-            }
-            ops.RemoveAll(o => o == '/');
-            real = total;
-            total = 0;
-            pemdas = newList;
-            newList = new List<string>();
-            //Add
-            for (int i = 0; i < ops.Count; i++)
-            {
-                if (ops[i] == '+')
-                {
-                    var prod = decimal.Parse(pemdas[i]) + decimal.Parse(pemdas[i + 1]);
-                    total += prod;
-                    newList.Add(prod.ToString());
-                    i++;
-                }
-                else
-                {
-                    newList.Add(pemdas[i]);
-                }
-            }
-            ops.RemoveAll(o => o == '+');
-            real = total;
-            total = 0;
-            pemdas = newList;
-            newList = new List<string>();
-            //Subtract
-            for (int i = 0; i < ops.Count; i++)
-            {
-                if (ops[i] == '-')
-                {
-                    var prod = decimal.Parse(pemdas[i]) - decimal.Parse(pemdas[i + 1]);
-                    total += prod;
-                    newList.Add(prod.ToString());
-                    i++;
-                }
-                else
-                {
-                    newList.Add(pemdas[i]);
-                }
-            }
-            ops.RemoveAll(o => o == '-');
-            return real;
+            return updatedConstants;
         }
 
         private bool IsNumber(char key)
