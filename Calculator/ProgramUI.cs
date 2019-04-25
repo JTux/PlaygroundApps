@@ -45,9 +45,20 @@ namespace Calculator
                 {
                     if (IsNumber(key))
                         equationPart += key;
-                    else if (key == '\b' && equationPart.Length > 0)
-                        equationPart = equationPart.Substring(0, equationPart.Length - 1);
-                    
+                    else if (key == '\b')
+                    {
+                        if (equationPart.Length > 0)
+                        {
+                            equationPart = equationPart.Substring(0, equationPart.Length - 1);
+                        }
+                        else if (constants.Count > 0)
+                        {
+                            operators.RemoveAt(operators.Count - 1);
+                            equationPart = constants[constants.Count - 1];
+                            constants.RemoveAt(constants.Count - 1);
+                        }
+                    }
+
                     PrintEquation(constants, operators);
                     Console.Write(equationPart);
                 }
