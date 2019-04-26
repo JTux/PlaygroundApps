@@ -16,5 +16,11 @@ namespace Calculator_Repository
             Constants = new List<string>();
             Operators = new List<char>();
         }
+
+        public Calculation(List<string> constants, List<char> operators)
+        {
+            Constants = constants;
+            Operators = operators;
+        }
     }
 }
