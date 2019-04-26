@@ -76,33 +76,33 @@ namespace Calculator
         {
             var updatedConstants = new List<string>();
 
-            void Reset(char op)
+            void Reset(char[] op)
             {
-                operators.RemoveAll(o => o == op);
+                operators.RemoveAll(o => o == op[0] || o == op[1]);
                 constants = updatedConstants;
                 updatedConstants = new List<string>();
             }
 
-            foreach (var operatorType in new char[] { '*', '/', '+', '-' })
+            foreach (var operatorTypes in new char[][] { new char[] { '*', '/' }, new char[] { '+', '-' } })
             {
-                if (operators.Contains(operatorType))
+                if (operators.Contains(operatorTypes[0]) || operators.Contains(operatorTypes[1]))
                 {
-                    updatedConstants = Operate(constants, operators, operatorType);
-                    Reset(operatorType);
+                    updatedConstants = Operate(constants, operators, operatorTypes);
+                    Reset(operatorTypes);
                 }
             }
             return decimal.Parse(constants[0]);
         }
 
-        private List<string> Operate(List<string> constants, List<char> operators, char operationType)
+        private List<string> Operate(List<string> constants, List<char> operators, char[] operationTypes)
         {
-            while (operators.Contains(operationType))
+            while (operators.Contains(operationTypes[0]) || operators.Contains(operationTypes[1]))
             {
-                int i = operators.FindIndex(o => o == operationType);
-                if (operators[i] == operationType)
+                int i = operators.FindIndex(o => o == operationTypes[0] || o == operationTypes[1]);
+                if (operators[i] == operationTypes[0] || operators[i] == operationTypes[1])
                 {
                     var calc = 0m;
-                    switch (operationType)
+                    switch (operators[i])
                     {
                         case '*':
                             calc = decimal.Parse(constants[i]) * decimal.Parse(constants[i + 1]);
