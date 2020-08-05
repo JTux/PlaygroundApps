@@ -1,20 +1,26 @@
-﻿using System;
+﻿using Calculator_Repository;
+using System;
 using System.Collections.Generic;
 
 namespace Calculator
 {
     public class ProgramUI
     {
+        private CalculatorRepository _calculatorRepo;
+
         public ProgramUI()
         {
+            _calculatorRepo = new CalculatorRepository();
             Console.CursorVisible = false;
         }
 
         public void Run()
         {
-            List<string> constants = new List<string>();
-            List<char> operators = new List<char>();
-            string equationPart = "";
+            Calculation calc = new Calculation();
+            bool continuing = false;
+            decimal previousValue = 0m;
+
+            string newNum = "";
             while (true)
             {
                 var key = Console.ReadKey(true).KeyChar;
@@ -22,112 +28,69 @@ namespace Calculator
                 if (key == '\r')
                     key = '=';
 
-                if (IsOperator(key))
+                if (CheckIsOperator(key))
                 {
-                    if (equationPart == "")
+                    if (continuing)
+                    {
+                        calc.Constants.Add(previousValue.ToString());
+                        calc.Operators.Add(key);
+                        continuing = false;
+                        PrintEquation(calc);
+                        continue;
+                    }
+                    continuing = false;
+
+                    if (newNum == "")
                         continue;
 
-                    operators.Add(key);
-                    constants.Add(equationPart);
-                    equationPart = "";
+                    calc.Operators.Add(key);
+                    calc.Constants.Add(newNum);
+                    newNum = "";
 
-                    PrintEquation(constants, operators);
+                    PrintEquation(calc);
 
-                    if (constants.Count != 0 && key == '=')
+                    if (calc.Constants.Count != 0 && key == '=')
                     {
-                        PrintEquation(constants, operators);
-                        Console.WriteLine($"{RunCalculation(constants, operators)}");
-                        constants = new List<string>();
-                        operators = new List<char>();
+                        previousValue = _calculatorRepo.RunCalculation(calc);
+                        PrintEquation(calc);
+                        Console.WriteLine($"{previousValue}");
+                        calc = new Calculation();
+                        continuing = true;
                     }
                 }
                 else
                 {
-                    if (IsNumber(key))
-                        equationPart += key;
+                    continuing = false;
+                    if (CheckIsNumber(key) && newNum.Length <= 15)
+                        newNum += key;
                     else if (key == '\b')
                     {
-                        if (equationPart.Length > 0)
+                        if (newNum.Length > 0)
                         {
-                            equationPart = equationPart.Substring(0, equationPart.Length - 1);
+                            newNum = newNum.Substring(0, newNum.Length - 1);
                         }
-                        else if (constants.Count > 0)
+                        else if (calc.Constants.Count > 0)
                         {
-                            operators.RemoveAt(operators.Count - 1);
-                            equationPart = constants[constants.Count - 1];
-                            constants.RemoveAt(constants.Count - 1);
+                            newNum = calc.Constants[calc.Constants.Count - 1];
+                            calc.Operators.RemoveAt(calc.Operators.Count - 1);
+                            calc.Constants.RemoveAt(calc.Constants.Count - 1);
                         }
                     }
 
-                    PrintEquation(constants, operators);
-                    Console.Write(equationPart);
+                    PrintEquation(calc);
+                    Console.Write(newNum);
                 }
             }
         }
 
-        private void PrintEquation(List<string> equation, List<char> operators)
+        private void PrintEquation(Calculation c)
         {
             Console.Clear();
-            for (int i = 0; i < equation.Count; i++)
-                Console.Write($"{equation[i]} {operators[i]} ");
+            for (int i = 0; i < c.Constants.Count; i++)
+                Console.Write($"{c.Constants[i]} {c.Operators[i]} ");
         }
 
-        private decimal RunCalculation(List<string> constants, List<char> operators)
-        {
-            var updatedConstants = new List<string>();
-
-            void Reset(char[] op)
-            {
-                operators.RemoveAll(o => o == op[0] || o == op[1]);
-                constants = updatedConstants;
-                updatedConstants = new List<string>();
-            }
-
-            foreach (var operatorTypes in new char[][] { new char[] { '*', '/' }, new char[] { '+', '-' } })
-            {
-                if (operators.Contains(operatorTypes[0]) || operators.Contains(operatorTypes[1]))
-                {
-                    updatedConstants = Operate(constants, operators, operatorTypes);
-                    Reset(operatorTypes);
-                }
-            }
-            return decimal.Parse(constants[0]);
-        }
-
-        private List<string> Operate(List<string> constants, List<char> operators, char[] operationTypes)
-        {
-            while (operators.Contains(operationTypes[0]) || operators.Contains(operationTypes[1]))
-            {
-                int i = operators.FindIndex(o => o == operationTypes[0] || o == operationTypes[1]);
-                if (operators[i] == operationTypes[0] || operators[i] == operationTypes[1])
-                {
-                    var calc = 0m;
-                    switch (operators[i])
-                    {
-                        case '*':
-                            calc = decimal.Parse(constants[i]) * decimal.Parse(constants[i + 1]);
-                            break;
-                        case '/':
-                            calc = decimal.Parse(constants[i]) / decimal.Parse(constants[i + 1]);
-                            break;
-                        case '+':
-                            calc = decimal.Parse(constants[i]) + decimal.Parse(constants[i + 1]);
-                            break;
-                        case '-':
-                            calc = decimal.Parse(constants[i]) - decimal.Parse(constants[i + 1]);
-                            break;
-                    }
-
-                    constants[i] = calc.ToString();
-                    constants.RemoveAt(i + 1);
-                    operators.RemoveAt(i);
-                }
-            }
-
-            return constants;
-        }
-
-        private bool IsNumber(char key)
+        private bool CheckIsNumber(char key)
         {
             switch (key)
             {
@@ -146,7 +109,7 @@ namespace Calculator
                     return false;
             }
         }
-        private bool IsOperator(char key)
+        private bool CheckIsOperator(char key)
         {
             switch (key)
             {

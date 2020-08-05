@@ -50,5 +50,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Calculator_Repository\Calculator_Repository.csproj">
+      <Project>{2B764FEF-E67D-4A31-A8AF-8442ADF96652}</Project>
+      <Name>Calculator_Repository</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
