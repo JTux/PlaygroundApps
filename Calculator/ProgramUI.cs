@@ -16,9 +16,11 @@ namespace Calculator
 
         public void Run()
         {
-            List<string> constants = new List<string>();
-            List<char> operators = new List<char>();
-            string equationPart = "";
+            Calculation calc = new Calculation();
+            bool continuing = false;
+            decimal previousValue = 0m;
+
+            string newNum = "";
             while (true)
             {
                 var key = Console.ReadKey(true).KeyChar;
@@ -28,43 +30,55 @@ namespace Calculator
 
                 if (CheckIsOperator(key))
                 {
-                    if (equationPart == "")
+                    if (continuing)
+                    {
+                        calc.Constants.Add(previousValue.ToString());
+                        calc.Operators.Add(key);
+                        continuing = false;
+                        PrintEquation(calc);
+                        continue;
+                    }
+                    continuing = false;
+
+                    if (newNum == "")
                         continue;
 
-                    operators.Add(key);
-                    constants.Add(equationPart);
-                    equationPart = "";
+                    calc.Operators.Add(key);
+                    calc.Constants.Add(newNum);
+                    newNum = "";
 
-                    PrintEquation(new Calculation(constants, operators));
+                    PrintEquation(calc);
 
-                    if (constants.Count != 0 && key == '=')
+                    if (calc.Constants.Count != 0 && key == '=')
                     {
-                        PrintEquation(new Calculation(constants, operators));
-                        Console.WriteLine($"{_calculatorRepo.RunCalculation(new Calculation(constants, operators))}");
-                        constants = new List<string>();
-                        operators = new List<char>();
+                        previousValue = _calculatorRepo.RunCalculation(calc);
+                        PrintEquation(calc);
+                        Console.WriteLine($"{previousValue}");
+                        calc = new Calculation();
+                        continuing = true;
                     }
                 }
                 else
                 {
-                    if (CheckIsNumber(key) && equationPart.Length <= 15)
-                        equationPart += key;
+                    continuing = false;
+                    if (CheckIsNumber(key) && newNum.Length <= 15)
+                        newNum += key;
                     else if (key == '\b')
                     {
-                        if (equationPart.Length > 0)
+                        if (newNum.Length > 0)
                         {
-                            equationPart = equationPart.Substring(0, equationPart.Length - 1);
+                            newNum = newNum.Substring(0, newNum.Length - 1);
                         }
-                        else if (constants.Count > 0)
+                        else if (calc.Constants.Count > 0)
                         {
-                            equationPart = constants[constants.Count - 1];
-                            operators.RemoveAt(operators.Count - 1);
-                            constants.RemoveAt(constants.Count - 1);
+                            newNum = calc.Constants[calc.Constants.Count - 1];
+                            calc.Operators.RemoveAt(calc.Operators.Count - 1);
+                            calc.Constants.RemoveAt(calc.Constants.Count - 1);
                         }
                     }
 
-                    PrintEquation(new Calculation(constants, operators));
-                    Console.Write(equationPart);
+                    PrintEquation(calc);
+                    Console.Write(newNum);
                 }
             }
         }
