@@ -8,13 +8,14 @@ namespace Calculator_Repository
 {
     public class CalculatorRepository
     {
-        public decimal RunCalculation(Calculation c)
+        public decimal RunCalculation(Calculation calc)
         {
+            var c = new Calculation(new List<string>(calc.Constants), new List<char>(calc.Operators));
+
             var updatedConstants = new List<string>();
             void Reset(char[] op)
             {
                 c.Operators.RemoveAll(o => o == op[0] || o == op[1]);
-                c.Constants = updatedConstants;
                 updatedConstants = new List<string>();
             }
 
